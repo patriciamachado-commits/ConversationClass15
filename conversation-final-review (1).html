@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Class: Final Review</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#00838F;min-height:100vh;padding:20px}
+.container{max-width:800px;margin:0 auto}
+.header{background:#fff;border-radius:20px;padding:30px;margin-bottom:20px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.header h1{color:#00838F;font-size:1.4em}
+.header p{color:#888}
+.badge{background:#ef4444;color:#fff;padding:4px 12px;border-radius:20px;font-size:.8em}
+.level-badge{background:#00838F;color:#fff;padding:6px 16px;border-radius:20px;font-size:.9em;display:inline-block;margin-bottom:10px}
+.card{background:#fff;border-radius:16px;padding:25px;margin-bottom:20px}
+.card h2{color:#00838F;margin-bottom:15px}
+label{font-weight:600;color:#333;display:block;margin-bottom:8px}
+input[type="text"],select{width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:16px;margin-bottom:15px}
+input:focus,select:focus{outline:none;border-color:#00838F}
+.btn{background:#00838F;color:#fff;border:none;padding:14px 32px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;transition:all .2s}
+.btn:hover{background:#006064}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-orange{background:#F5A623}
+.btn-secondary{background:#f5f5f5;color:#333}
+.section{display:none}
+.section.active{display:block}
+.question{background:#f8f9fa;border-radius:12px;padding:20px;margin:15px 0;border:1px solid #eee}
+.question h4{margin-bottom:15px;color:#333}
+.option{padding:14px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.option:hover{border-color:#00838F;background:#e0f7fa}
+.option.selected{border-color:#00838F;background:#b2ebf2}
+.option.correct{border-color:#22c55e;background:#f0fdf4}
+.option.incorrect{border-color:#ef4444;background:#fef2f2}
+.circle{width:20px;height:20px;border:2px solid #ccc;border-radius:50%;flex-shrink:0}
+.option.selected .circle{border-color:#00838F;background:#00838F}
+.progress{height:8px;background:#e0e0e0;border-radius:4px;margin-bottom:20px}
+.progress-bar{height:100%;background:#F5A623;border-radius:4px;transition:width .3s}
+.progress-text{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;color:#666}
+.score-card{background:linear-gradient(135deg,#00838F,#00ACC1);border-radius:20px;padding:35px;color:#fff;text-align:center}
+.score-big{font-size:4em;font-weight:700}
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:20px}
+.scores>div{background:rgba(255,255,255,.15);border-radius:12px;padding:15px}
+.scores label{font-size:.8em;opacity:.9}
+.scores span{font-size:1.6em;font-weight:700;display:block}
+.cefr-box{background:linear-gradient(135deg,#1565C0,#1976D2);color:#fff;border-radius:12px;padding:20px;margin-top:20px;text-align:center}
+.cefr-box h3{margin-bottom:10px}
+.cefr-level{font-size:2em;font-weight:700}
+.not-submitted{background:#ffebee;border:2px solid #ef5350;border-radius:12px;padding:20px;text-align:center;animation:pulse-warning 2s infinite}
+.not-submitted h3{color:#c62828;margin-bottom:10px}
+@keyframes pulse-warning{0%,100%{box-shadow:0 0 0 0 rgba(239,83,80,.4)}50%{box-shadow:0 0 0 10px rgba(239,83,80,0)}}
+.submitted-success{background:#e8f5e9;border:2px solid #66bb6a;border-radius:12px;padding:20px;text-align:center;display:none}
+.submitted-success h3{color:#2e7d32}
+.prompt-box{background:#e0f7fa;border:1px solid #80deea;border-radius:12px;padding:20px;margin-bottom:20px}
+.prompt-box h4{color:#00838F;margin-bottom:10px}
+.hidden{display:none}
+.nav-buttons{display:flex;justify-content:space-between;margin-top:20px;gap:10px}
+@media(max-width:600px){.scores{grid-template-columns:1fr}.nav-buttons{flex-direction:column}}
+
+.scenario-option{padding:15px;border:2px solid #e0e0e0;border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.scenario-option:hover{border-color:#00838F;background:#e0f7fa}
+.scenario-option.selected{border-color:#00838F;background:#b2ebf2}
+.chat-container{background:#f5f5f5;border-radius:16px;padding:20px;margin:20px 0;min-height:200px;max-height:450px;overflow-y:auto}
+.chat-bubble{max-width:85%;padding:12px 16px;border-radius:16px;margin-bottom:12px;line-height:1.5}
+.chat-ai{background:#00838F;color:#fff;border-bottom-left-radius:4px}
+.chat-user{background:#fff;border:2px solid #00838F;color:#333;border-bottom-right-radius:4px}
+.chat-row{display:flex;margin-bottom:12px}
+.chat-row.ai{justify-content:flex-start}
+.chat-row.user{justify-content:flex-end}
+.chat-label{font-size:11px;color:#666;margin-bottom:4px;font-weight:600}
+.mic-btn{width:80px;height:80px;border-radius:50%;background:#00838F;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:15px auto;transition:all .2s}
+.mic-btn:hover{background:#006064;transform:scale(1.05)}
+.mic-btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
+.mic-btn.recording{background:#ef4444;animation:pulse-rec 1.5s infinite}
+.mic-btn svg{width:36px;height:36px;fill:#fff}
+@keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 15px rgba(239,68,68,0)}}
+.status-text{text-align:center;color:#666;margin:10px 0;font-size:14px}
+.exchange-counter{text-align:center;color:#00838F;font-weight:600;margin-bottom:10px}
+.topic-card{background:#fff;border:2px solid #e0e0e0;border-radius:12px;padding:20px;margin-bottom:15px;cursor:pointer;transition:all .2s}
+.topic-card:hover{border-color:#00838F;background:#e0f7fa}
+.topic-card.completed{border-color:#22c55e;background:#f0fdf4}
+.topic-card h4{color:#00838F;margin-bottom:8px}
+.topic-card p{color:#666;font-size:14px}
+.feedback{background:#e0f7fa;border:1px solid #00838F;border-radius:12px;padding:20px;margin-top:15px}
+.convo-count{background:#00838F;color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="level-badge">Conversation Class</div>
+        <h1>💬 Final Review <span class="badge">FINAL</span></h1>
+        <p>Week 8 - Conversation Skills Assessment</p>
+    </div>
+
+    <div class="section active" id="start">
+        <div class="card">
+            <h2>Welcome to Your Final Review!</h2>
+            <p style="color:#666;margin-bottom:20px">This review focuses on <strong>conversation skills</strong> from our 8 weeks together:</p>
+            <ul style="color:#666;margin-bottom:20px;padding-left:20px">
+                <li>Social Interactions & Small Talk</li>
+                <li>Neighborhood & Community</li>
+                <li>Professional Life & Job Search</li>
+                <li>Business Ideas</li>
+                <li>Culture & Entertainment</li>
+                <li>Consumer Rights & Complaints</li>
+                <li>Restaurant Etiquette</li>
+            </ul>
+            <p style="color:#00838F;font-weight:600;margin-bottom:20px">This review is mostly speaking! Get ready to talk!</p>
+            <label>Your Full Name</label>
+            <input type="text" id="studentName" placeholder="Enter your name...">
+            <label>Your Class</label>
+            <select id="studentClass">
+                <option value="">Select your class...</option>
+                <option value="3078-TTH-9AM">3078 - Tue/Thu 9:00 AM (Tom)</option>
+            </select>
+            <button class="btn" onclick="startQuiz()">Start Final Review</button>
+        </div>
+    </div>
+
+    <!-- Section 1: Quick Vocabulary Check -->
+    <div class="section" id="s1">
+        <div class="card">
+            <div class="progress-text"><span>Section 1 of 3</span><span>33%</span></div>
+            <div class="progress"><div class="progress-bar" style="width:33%"></div></div>
+            <h2>Quick Vocabulary Check</h2>
+            <p style="color:#666;margin-bottom:20px">Let's quickly review some key vocabulary from our conversations.</p>
+            <div id="vocabQuestions"></div>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goBack0()">Back</button>
+                <button class="btn" onclick="checkS1()">Continue to Speaking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Conversation Practice (Main Section) -->
+    <div class="section" id="s2">
+        <div class="card">
+            <div class="progress-text"><span>Section 2 of 3</span><span>66%</span></div>
+            <div class="progress"><div class="progress-bar" style="width:66%"></div></div>
+            <h2>Conversation Practice</h2>
+            <p style="color:#666;margin-bottom:20px">Complete <strong>3 conversations</strong> on different topics. This is the main part of your review!</p>
+            
+            <div id="topicSelection">
+                <div class="prompt-box">
+                    <h4>Choose your first conversation topic:</h4>
+                    <p style="color:#666">You will have a natural conversation with 6-8 exchanges.</p>
+                </div>
+                
+                <div class="topic-card" id="topic1" onclick="selectTopic(1)">
+                    <h4>🍽️ Restaurant Conversation</h4>
+                    <p>Practice ordering food, asking about the menu, and American dining etiquette.</p>
+                </div>
+                
+                <div class="topic-card" id="topic2" onclick="selectTopic(2)">
+                    <h4>🏘️ Neighborhood & Community</h4>
+                    <p>Discuss community issues with a neighbor and plan a neighborhood event.</p>
+                </div>
+                
+                <div class="topic-card" id="topic3" onclick="selectTopic(3)">
+                    <h4>💼 Job Interview</h4>
+                    <p>Practice a professional job interview with common questions.</p>
+                </div>
+                
+                <div class="topic-card" id="topic4" onclick="selectTopic(4)">
+                    <h4>🛒 Customer Complaint</h4>
+                    <p>Practice making a polite complaint and resolving an issue with a product.</p>
+                </div>
+                
+                <div class="topic-card" id="topic5" onclick="selectTopic(5)">
+                    <h4>🎬 Culture & Entertainment</h4>
+                    <p>Discuss movies, TV shows, and entertainment preferences with a friend.</p>
+                </div>
+                
+                <div class="topic-card" id="topic6" onclick="selectTopic(6)">
+                    <h4>🚀 Business Pitch</h4>
+                    <p>Present your business idea to a potential investor or partner.</p>
+                </div>
+            </div>
+
+            <div id="rolePlayArea" style="display:none">
+                <div style="background:#b2ebf2;padding:10px 15px;border-radius:8px;margin-bottom:15px;text-align:center">
+                    <strong id="scenarioTitle" style="color:#00838F"></strong>
+                    <span class="convo-count" id="convoCount">Conversation 1 of 3</span>
+                </div>
+                <div class="exchange-counter" id="exchangeCounter">Exchange 1 of 6</div>
+                <div class="chat-container" id="chatContainer"></div>
+                <div class="status-text" id="statusText">Click the microphone to respond</div>
+                <button class="mic-btn" id="micBtn" onclick="toggleMic()" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </button>
+            </div>
+
+            <div class="feedback hidden" id="sFeedback"></div>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goTo('s1')" id="backToVocab">Back</button>
+                <button class="btn" id="nextTopicBtn" onclick="nextTopic()" style="display:none">Next Conversation</button>
+                <button class="btn" id="finishSpeakingBtn" onclick="finishSpeaking()" style="display:none">Continue to Final</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Final Reflection -->
+    <div class="section" id="s3">
+        <div class="card">
+            <div class="progress-text"><span>Section 3 of 3</span><span>100%</span></div>
+            <div class="progress"><div class="progress-bar" style="width:100%"></div></div>
+            <h2>Final Reflection</h2>
+            <p style="color:#666;margin-bottom:20px">Answer these reflection questions about your learning.</p>
+            <div id="reflectionQuestions"></div>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="goTo('s2')">Back</button>
+                <button class="btn btn-orange" onclick="submitFinal()">Submit Final Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="section" id="results">
+        <div class="score-card">
+            <p style="opacity:.8">Congratulations! Conversation Class Complete!</p>
+            <div class="score-big" id="finalPct">0%</div>
+            <p id="studentDisplay"></p>
+            <div class="scores">
+                <div><label>Vocabulary</label><span id="scV">0/10</span></div>
+                <div><label>Speaking</label><span id="scS">0/60</span></div>
+                <div><label>Reflection</label><span id="scR">0/10</span></div>
+            </div>
+            <div class="cefr-box">
+                <h3>Conversation Skills</h3>
+                <div class="cefr-level" id="skillLevel">Good</div>
+                <p id="skillMessage">You have developed strong conversation skills!</p>
+            </div>
+            <div style="margin-top:25px">
+                <div class="not-submitted" id="notSubmittedWarning">
+                    <h3>NOT YET SUBMITTED</h3>
+                    <p>Click the button below to submit your results to your teacher</p>
+                </div>
+                <div class="submitted-success" id="submittedSuccess">
+                    <h3>Submitted Successfully!</h3>
+                    <p>Your teacher will receive your results</p>
+                </div>
+                <button class="btn btn-orange" id="submitBtn" onclick="submitToTeacher()" style="margin-top:15px;font-size:20px;padding:20px">Submit to Teacher</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SESSION='Conversation Class Final';
+let studentName='',studentClass='';
+let scores={v:0,s:0,r:0};
+let completedTopics=[];
+let currentTopic=0;
+let currentExchange=0;
+let transcript=[];
+let allTranscripts=[];
+let isRecording=false;
+let recognition=null;
+let conversationsCompleted=0;
+
+const scenarios={
+    1:{
+        title:'Restaurant Conversation',
+        aiRole:'Server',
+        userRole:'Customer',
+        exchanges:[
+            {ai:"Good evening! Welcome to The Golden Fork. My name is Michael and I will be your server tonight. Is this your first time dining with us?"},
+            {ai:"Wonderful! Can I start you off with something to drink? We have a great selection of beverages."},
+            {ai:"Great choice! Are you ready to order, or would you like a few more minutes to look at the menu?"},
+            {ai:"Excellent! What can I get for you today? Any appetizers to start?"},
+            {ai:"And for your main course? I highly recommend the grilled salmon - it is our chef's specialty."},
+            {ai:"Perfect! Do you have any food allergies or dietary restrictions I should let the kitchen know about?"},
+            {ai:"Got it! Your order will be ready in about 15-20 minutes. Can I get you anything else while you wait?"}
+        ]
+    },
+    2:{
+        title:'Neighborhood & Community',
+        aiRole:'Neighbor',
+        userRole:'You',
+        exchanges:[
+            {ai:"Hey there! I do not think we have properly met. I just moved in next door last month. How long have you lived in this neighborhood?"},
+            {ai:"Nice! What do you like most about living here? I am still getting to know the area."},
+            {ai:"Good to know! I have noticed there is not much community activity around here. Have you thought about organizing something like a block party?"},
+            {ai:"That sounds fun! What kind of activities do you think neighbors would enjoy? Maybe a potluck or games for the kids?"},
+            {ai:"Great ideas! When do you think would be a good time to have it? Weekends work better for most families, right?"},
+            {ai:"Perfect! Should we create a flyer to invite everyone? I could help distribute them around the block."},
+            {ai:"Awesome! It was really nice talking to you. I think this could really bring the community together!"}
+        ]
+    },
+    3:{
+        title:'Job Interview',
+        aiRole:'Interviewer',
+        userRole:'Candidate',
+        exchanges:[
+            {ai:"Thank you for coming in today. Please, have a seat. Before we begin, can you tell me a little about yourself?"},
+            {ai:"Interesting background! What made you interested in applying for this position at our company?"},
+            {ai:"I see. Can you describe your greatest professional strength and give me an example of how you have used it?"},
+            {ai:"That is helpful. Now, what would you say is an area where you are still working to improve?"},
+            {ai:"Honest answer, I appreciate that. How do you handle stressful situations or tight deadlines at work?"},
+            {ai:"Good approach! Where do you see yourself professionally in five years?"},
+            {ai:"Last question - do you have any questions for me about the position or our company?"}
+        ]
+    },
+    4:{
+        title:'Customer Complaint',
+        aiRole:'Store Manager',
+        userRole:'Customer',
+        exchanges:[
+            {ai:"Hello, welcome to customer service. I am the store manager. How can I help you today?"},
+            {ai:"I am sorry to hear that. Can you tell me more about what happened with the product?"},
+            {ai:"I understand your frustration. Do you have your receipt with you? When did you purchase this item?"},
+            {ai:"Thank you. Let me check our system. What would be your preferred resolution - a refund, exchange, or store credit?"},
+            {ai:"I can definitely help with that. Is there anything else about this experience that concerned you?"},
+            {ai:"I appreciate you bringing this to our attention. We value your feedback. Is there anything else I can do for you today?"},
+            {ai:"Thank you for your patience. We hope to see you again, and I promise we will do better!"}
+        ]
+    },
+    5:{
+        title:'Culture & Entertainment',
+        aiRole:'Friend',
+        userRole:'You',
+        exchanges:[
+            {ai:"Hey! I was just thinking about what to watch this weekend. Have you seen any good movies or shows lately?"},
+            {ai:"Oh really? What is it about? I am always looking for recommendations!"},
+            {ai:"That sounds interesting! Do you prefer watching things at home on streaming services, or do you like going to movie theaters?"},
+            {ai:"I get that! Speaking of entertainment, have you been to any concerts or live events recently?"},
+            {ai:"Nice! What kind of music do you usually listen to? I have been trying to discover new artists."},
+            {ai:"Cool taste! If you could meet any celebrity or artist, who would it be and why?"},
+            {ai:"Great choice! We should definitely hang out and watch something together soon. This was a fun conversation!"}
+        ]
+    },
+    6:{
+        title:'Business Pitch',
+        aiRole:'Investor',
+        userRole:'Entrepreneur',
+        exchanges:[
+            {ai:"Thank you for meeting with me today. I have heard you have an interesting business idea. What is your concept?"},
+            {ai:"Interesting! Who is your target market? Who would be your ideal customers?"},
+            {ai:"I see. What problem does your business solve for these customers?"},
+            {ai:"How is your idea different from what is already out there? What makes it unique?"},
+            {ai:"Good point! Have you thought about how you would market and reach your customers?"},
+            {ai:"Smart thinking! What is your timeline? Where do you see this business in one year?"},
+            {ai:"This sounds promising! What kind of investment are you looking for to get started?"}
+        ]
+    }
+};
+
+const vocabQBank=[
+    {q:"When you meet someone new, you make _____.",opts:["small talk","big talk","fast talk"],correct:0},
+    {q:"A person who lives next to you is your _____.",opts:["coworker","neighbor","customer"],correct:1},
+    {q:"To ask for a job, you go to a job _____.",opts:["party","interview","dinner"],correct:1},
+    {q:"When you are unhappy with a product, you make a _____.",opts:["compliment","complaint","comment"],correct:1},
+    {q:"At a restaurant, the person who serves your food is the _____.",opts:["chef","manager","server"],correct:2},
+    {q:"Money left for good service at a restaurant is called a _____.",opts:["tip","tax","fee"],correct:0},
+    {q:"Your skills and experience for a job are your _____.",opts:["hobbies","qualifications","references"],correct:1},
+    {q:"A new business idea is often called a _____.",opts:["startup","setup","standup"],correct:0},
+    {q:"To return a product to a store, you need the _____.",opts:["menu","receipt","resume"],correct:1},
+    {q:"Activities you do for fun are called _____.",opts:["chores","entertainment","errands"],correct:1}
+];
+
+const reflectionQBank=[
+    {q:"Which conversation topic was MOST useful for your daily life?",opts:["Restaurant & dining","Neighborhood & community","Professional life","Consumer rights"],correct:-1},
+    {q:"Which skill improved the MOST during this course?",opts:["Starting conversations","Expressing opinions","Asking questions","Understanding cultural differences"],correct:-1},
+    {q:"How confident do you feel having conversations in English now?",opts:["Very confident","Somewhat confident","Still learning","Need more practice"],correct:-1},
+    {q:"What would you like to practice MORE in the future?",opts:["Professional conversations","Social small talk","Customer service situations","All of the above"],correct:-1}
+];
+
+function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+}
+
+function initQuestions(){
+    const vQs=shuffle([...vocabQBank]).slice(0,10);
+    let vHTML='';
+    vQs.forEach((q,i)=>{
+        vHTML+='<div class="question" data-correct="'+q.correct+'"><h4>'+(i+1)+'. '+q.q+'</h4>';
+        q.opts.forEach((o,j)=>{
+            vHTML+='<div class="option" onclick="sel(this)" data-v="'+j+'"><div class="circle"></div>'+o+'</div>';
+        });
+        vHTML+='</div>';
+    });
+    document.getElementById('vocabQuestions').innerHTML=vHTML;
+
+    let rHTML='';
+    reflectionQBank.forEach((q,i)=>{
+        rHTML+='<div class="question"><h4>'+(i+1)+'. '+q.q+'</h4>';
+        q.opts.forEach((o,j)=>{
+            rHTML+='<div class="option" onclick="sel(this)" data-v="'+j+'"><div class="circle"></div>'+o+'</div>';
+        });
+        rHTML+='</div>';
+    });
+    document.getElementById('reflectionQuestions').innerHTML=rHTML;
+}
+
+function startQuiz(){
+    studentName=document.getElementById('studentName').value.trim();
+    studentClass=document.getElementById('studentClass').value;
+    if(!studentName){alert('Please enter your name');return;}
+    if(!studentClass){alert('Please select your class');return;}
+    initQuestions();
+    goTo('s1');
+}
+
+function goTo(id){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+function goBack0(){
+    document.getElementById('s1').classList.remove('active');
+    document.getElementById('start').classList.add('active');
+}
+
+function sel(el){
+    el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function checkS1(){
+    let correct=0;
+    document.querySelectorAll('#vocabQuestions .question').forEach(q=>{
+        const selected=q.querySelector('.option.selected');
+        const correctAns=parseInt(q.dataset.correct);
+        if(selected&&parseInt(selected.dataset.v)===correctAns)correct++;
+    });
+    scores.v=correct;
+    goTo('s2');
+}
+
+function selectTopic(num){
+    if(completedTopics.includes(num)){
+        alert('You already completed this topic! Choose a different one.');
+        return;
+    }
+    currentTopic=num;
+    const scenario=scenarios[num];
+    
+    document.getElementById('topicSelection').style.display='none';
+    document.getElementById('rolePlayArea').style.display='block';
+    document.getElementById('scenarioTitle').textContent=scenario.title;
+    document.getElementById('convoCount').textContent='Conversation '+(conversationsCompleted+1)+' of 3';
+    document.getElementById('backToVocab').style.display='none';
+    
+    transcript=[];
+    currentExchange=0;
+    document.getElementById('chatContainer').innerHTML='';
+    updateExchangeCounter();
+    
+    setTimeout(()=>{
+        playAIMessage();
+    },500);
+}
+
+function updateExchangeCounter(){
+    const total=scenarios[currentTopic].exchanges.length;
+    document.getElementById('exchangeCounter').textContent='Exchange '+(currentExchange+1)+' of '+total;
+}
+
+function addMessage(sender,text){
+    const container=document.getElementById('chatContainer');
+    const scenario=scenarios[currentTopic];
+    const label=sender==='ai'?scenario.aiRole:scenario.userRole;
+    const bubbleClass=sender==='ai'?'chat-ai':'chat-user';
+    
+    const row=document.createElement('div');
+    row.className='chat-row '+sender;
+    row.innerHTML='<div><div class="chat-label">'+label+'</div><div class="chat-bubble '+bubbleClass+'">'+text+'</div></div>';
+    container.appendChild(row);
+    container.scrollTop=container.scrollHeight;
+}
+
+function speakText(text,callback){
+    if('speechSynthesis' in window){
+        window.speechSynthesis.cancel();
+        const utterance=new SpeechSynthesisUtterance(text);
+        utterance.rate=0.9;
+        utterance.lang='en-US';
+        utterance.onend=function(){
+            if(callback)callback();
+        };
+        window.speechSynthesis.speak(utterance);
+    }else{
+        if(callback)setTimeout(callback,1500);
+    }
+}
+
+function playAIMessage(){
+    const scenario=scenarios[currentTopic];
+    const exchange=scenario.exchanges[currentExchange];
+    
+    document.getElementById('micBtn').disabled=true;
+    document.getElementById('statusText').textContent='Listen...';
+    
+    addMessage('ai',exchange.ai);
+    transcript.push(scenario.aiRole+': '+exchange.ai);
+    
+    speakText(exchange.ai,function(){
+        if(currentExchange>=scenario.exchanges.length-1){
+            endConversation();
+        }else{
+            document.getElementById('micBtn').disabled=false;
+            document.getElementById('statusText').textContent='Your turn! Click the microphone to respond';
+        }
+    });
+}
+
+function toggleMic(){
+    if(isRecording){
+        stopRecording();
+    }else{
+        startRecording();
+    }
+}
+
+function startRecording(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){
+        const response=prompt('Speech recognition not available. Type your response:');
+        if(response){
+            handleUserResponse(response);
+        }
+        return;
+    }
+    
+    recognition=new SR();
+    recognition.continuous=false;
+    recognition.interimResults=false;
+    recognition.lang='en-US';
+    
+    recognition.onstart=function(){
+        isRecording=true;
+        document.getElementById('micBtn').classList.add('recording');
+        document.getElementById('statusText').textContent='Listening... Click to stop';
+    };
+    
+    recognition.onresult=function(event){
+        const text=event.results[0][0].transcript;
+        handleUserResponse(text);
+    };
+    
+    recognition.onerror=function(event){
+        stopRecording();
+        if(event.error==='no-speech'){
+            document.getElementById('statusText').textContent='No speech detected. Try again.';
+        }
+    };
+    
+    recognition.onend=function(){
+        if(isRecording) stopRecording();
+    };
+    
+    try{recognition.start();}catch(e){}
+}
+
+function stopRecording(){
+    isRecording=false;
+    document.getElementById('micBtn').classList.remove('recording');
+    if(recognition){try{recognition.stop();}catch(e){}}
+}
+
+function handleUserResponse(userText){
+    stopRecording();
+    const scenario=scenarios[currentTopic];
+    
+    addMessage('user',userText);
+    transcript.push(scenario.userRole+': '+userText);
+    
+    currentExchange++;
+    updateExchangeCounter();
+    
+    document.getElementById('micBtn').disabled=true;
+    document.getElementById('statusText').textContent='';
+    
+    setTimeout(()=>{playAIMessage();},1000);
+}
+
+function endConversation(){
+    document.getElementById('micBtn').disabled=true;
+    document.getElementById('statusText').textContent='Conversation complete!';
+    
+    completedTopics.push(currentTopic);
+    conversationsCompleted++;
+    
+    // Mark topic as completed
+    document.getElementById('topic'+currentTopic).classList.add('completed');
+    
+    // Save transcript
+    allTranscripts.push({
+        topic: scenarios[currentTopic].title,
+        exchanges: currentExchange,
+        transcript: transcript.join('\n')
+    });
+    
+    // Calculate speaking score (20 points per conversation, max 60)
+    scores.s = conversationsCompleted * 20;
+    
+    document.getElementById('sFeedback').innerHTML='<h4>Great conversation!</h4><p>Topic: '+scenarios[currentTopic].title+'</p><p>Exchanges: '+currentExchange+'</p><p>Conversations completed: '+conversationsCompleted+'/3</p>';
+    document.getElementById('sFeedback').classList.remove('hidden');
+    
+    if(conversationsCompleted < 3){
+        document.getElementById('nextTopicBtn').style.display='block';
+        document.getElementById('finishSpeakingBtn').style.display='none';
+    }else{
+        document.getElementById('nextTopicBtn').style.display='none';
+        document.getElementById('finishSpeakingBtn').style.display='block';
+    }
+}
+
+function nextTopic(){
+    document.getElementById('rolePlayArea').style.display='none';
+    document.getElementById('topicSelection').style.display='block';
+    document.getElementById('sFeedback').classList.add('hidden');
+    document.getElementById('nextTopicBtn').style.display='none';
+}
+
+function finishSpeaking(){
+    goTo('s3');
+}
+
+function submitFinal(){
+    // Count reflection answers (all answers count as correct since they are opinions)
+    let answered=0;
+    document.querySelectorAll('#reflectionQuestions .question').forEach(q=>{
+        if(q.querySelector('.option.selected')) answered++;
+    });
+    scores.r = answered * 2.5; // 2.5 points each, max 10
+    
+    const total = scores.v + scores.s + scores.r;
+    const pct = Math.round(total/80*100);
+    
+    document.getElementById('finalPct').textContent=pct+'%';
+    document.getElementById('studentDisplay').textContent=studentName+' ['+studentClass+']';
+    document.getElementById('scV').textContent=scores.v+'/10';
+    document.getElementById('scS').textContent=scores.s+'/60';
+    document.getElementById('scR').textContent=Math.round(scores.r)+'/10';
+    
+    let level='Good';
+    let msg='';
+    if(pct>=90){
+        level='Excellent';
+        msg='Outstanding conversation skills! You communicate naturally and confidently.';
+    }else if(pct>=75){
+        level='Very Good';
+        msg='Great job! You can handle most everyday conversations with ease.';
+    }else if(pct>=60){
+        level='Good';
+        msg='Good progress! Keep practicing to build more confidence.';
+    }else{
+        level='Developing';
+        msg='You are making progress. Continue practicing conversations daily!';
+    }
+    document.getElementById('skillLevel').textContent=level;
+    document.getElementById('skillMessage').textContent=msg;
+    
+    goTo('results');
+}
+
+function submitToTeacher(){
+    const pct=Math.round((scores.v+scores.s+scores.r)/80*100);
+    const sn=studentName+' ['+studentClass+']';
+    
+    let allTranscriptText = allTranscripts.map(t => 
+        '=== '+t.topic+' ('+t.exchanges+' exchanges) ===\n'+t.transcript
+    ).join('\n\n');
+    
+    const skillResult=document.getElementById('skillLevel').textContent;
+    
+    const url='https://docs.google.com/forms/d/e/1FAIpQLSd9ACrRqGcnC8C0XEHLHNyTGGOlBwf7oMrwW7YixAjCWSlLfg/viewform?usp=pp_url'+
+        '&entry.518151516='+encodeURIComponent(sn)+
+        '&entry.864654596='+encodeURIComponent(SESSION)+
+        '&entry.258952242='+encodeURIComponent('N/A')+
+        '&entry.859150584='+encodeURIComponent(scores.v+'/10')+
+        '&entry.939912807='+encodeURIComponent('Conversation Class - Speaking Focus')+
+        '&entry.1121796741='+encodeURIComponent('N/A')+
+        '&entry.2086302086='+encodeURIComponent(allTranscriptText)+
+        '&entry.1435469716='+encodeURIComponent(scores.s+'/60')+
+        '&entry.1998281944='+encodeURIComponent(Math.round(scores.r)+'/10')+
+        '&entry.1207114914='+encodeURIComponent(pct+'%')+
+        '&entry.73595410='+encodeURIComponent(skillResult);
+    
+    document.getElementById('notSubmittedWarning').style.display='none';
+    document.getElementById('submittedSuccess').style.display='block';
+    document.getElementById('submitBtn').style.display='none';
+    window.open(url,'_blank');
+}
+</script>
+</body>
+</html>
